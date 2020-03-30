@@ -1,0 +1,141 @@
+1、redis安装（10.215.255.74）:
+https://www.jianshu.com/p/1260cc584916
+2、redis使用：
+https://www.cnblogs.com/gzdlh/p/8148644.html 
+
+cd /opt/smb/redis-5.0.0
+redis-server redis.conf
+
+redis-cli shutdown
+
+redis-server /opt/smb/redis-5.0.0/redis.conf
+/usr/local/bin/redis-cli -h 10.215.255.74 -p 6379
+
+keys *
+flushdb
+flushall
+/usr/local/bin/redis-cli --raw keys "enduser*" | xargs redis-cli del 
+
+
+
+3、mysql安装(10.215.255.79、10.215.255.80)
+https://blog.csdn.net/liu940204/article/details/90144172 
+
+主节点：10.215.250.2:3306
+从节点：10.215.250.3:3306
+ROOT账号：root
+ROOT密码：iKAF%IbQHu
+
+cd /usr/local/mysql/bin/
+sudo ./mysqldump -h10.215.250.2 -uroot -piKAF%IbQHu --default-character-set=utf8 smb-cloud > /home/hik/sql/smb_cloud_test_`date +\%Y\%m\%d\%H\%M\%S`.sql
+
+
+
+远程访问：
+mysql -h 10.215.250.2 -P 3306 -u root -p 
+
+/usr/local/mysql/bin/mysql -u root -p
+SMB-Cloud12345
+use smb_cloud;
+drop database smb_cloud;
+
+source  /home/hik/smb-upload-file/smb_cloud.sql 
+
+导出：
+cd /usr/local/mysql/bin
+./mysqldump -u root -p smb_cloud > /home/hik/sql/smb_cloud_uat.sql
+
+./mysqldump -h10.215.250.2 -u root -p iKAF%IbQHu smb-cloud > /home/hik/sql/smb_cloud_test.sql
+
+ALTER TABLE `smb_cloud`.`msg_push`   
+  CHANGE `company_id` `enduser_id` VARCHAR(64) CHARSET utf8 COLLATE utf8_general_ci NULL;
+
+生产环境导出某张表
+/usr/local/mysql/bin/mysqldump -uroot -piKAF%IbQHu -P3306 -h10.215.250.2  smb_cloud_prod device_info >/home/hik/sql/device_info.sql
+
+
+4、yum源修改：
+https://my.oschina.net/u/2357619/blog/1926067 
+https://www.jianshu.com/p/4fcb5062cd54
+
+
+5、Tomcat安装（10.215.255.77、10.215.255.78）：
+
+cp /home/hik/smb-upload-file/auto-deploy.sh   /opt/smb/tomcat
+
+cd /opt/smb/tomcat
+vim /opt/smb/shell-bash/auto-deploy.sh
+/opt/smb/shell-bash/auto-deploy.sh
+
+cd /opt/smb/tomcat/webapps/
+/opt/smb/tomcat/bin/shutdown.sh
+rm -rf  /opt/smb/tomcat/webapps/smb-cloud*
+cp /home/hik/smb-upload-file/smb-cloud.war /opt/smb/tomcat/webapps/
+/opt/smb/tomcat/bin/startup.sh
+
+ps -ef | grep tomcat
+tail -fn200 /logs/smbcloud/log_info.log
+tail -fn2000 /opt/smb/tomcat/logs/catalina.out
+
+rm -rf  /opt/smb/tomcat/webapps/smb-cloud*
+
+rm -rf  /opt/smb/tomcat/webapps/smb-cloud/WEB-INF/classes/com/
+cp -rf /home/hik/smb-upload-file/com /opt/smb/tomcat/webapps/smb-cloud/WEB-INF/classes/com/
+
+
+rm -rf  /opt/smb/tomcat/webapps/smb-cloud/WEB-INF/classes/
+cp -rf /home/hik/smb-upload-file/com /opt/smb/tomcat/webapps/smb-cloud/WEB-INF/classes/
+
+
+rm -rf  /opt/smb/tomcat/webapps/smb-cloud/WEB-INF/classes/mapper/
+cp -rf /home/hik/smb-upload-file/mapper /opt/smb/tomcat/webapps/smb-cloud/WEB-INF/classes/mapper/
+  
+
+cp /home/hik/smb-upload-file/application-db.yaml   /opt/smb/tomcat/webapps/smb-cloud/WEB-INF/classes
+
+
+vim /opt/smb/tomcat/webapps/smb-cloud/WEB-INF/classes/application-url.yaml
+
+vim /opt/smb/tomcat/webapps/smb-cloud/WEB-INF/classes/application-uat.yaml
+
+6、OpenJDK安装：
+https://www.jianshu.com/p/b0d345450c17 
+https://blog.csdn.net/y41992910/article/details/92980244
+
+7、Nginx搭建（10.215.255.75、10.215.255.76）：
+http://60.190.232.63:80/smb-cloud/b/company/info/select 
+
+ps -ef | grep nginx
+
+cd /usr/local/nginx/conf
+
+vim /usr/local/nginx/conf/nginx.conf 
+
+
+cp /home/hik/smb-upload-file/nginx.conf /usr/local/nginx/conf
+
+sudo scp -r /home/hik/smb-upload-file/nginx.conf  hik@10.215.255.76:/home/hik/smb-upload-file
+
+ tail -fn200 /usr/local/nginx/logs/access.log
+
+ tail -fn200 /usr/local/nginx/logs/app80/cloud-.log
+
+ tail -fn200 /usr/local/nginx/logs/app443
+
+测试nginx.conf文件：
+ /usr/local/nginx/sbin/nginx -t
+启动：
+ /usr/local/nginx/sbin/nginx -c /usr/local/nginx/conf/nginx.conf
+停止：
+ /usr/local/nginx/sbin/nginx -s stop
+重启：
+ /usr/local/nginx/sbin/nginx -s reload
+拷贝：
+cp /home/hik/smb-upload-file/nginx.conf /usr/local/nginx/conf
+
+
+
+
+dig +short open.ys7.com
+
+
